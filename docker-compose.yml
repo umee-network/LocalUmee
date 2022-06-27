@@ -1,0 +1,60 @@
+version: "3"
+
+services:
+  terrad:
+    image: terramoney/localterra-core:2.0.1
+    #pull_policy: always
+    volumes:
+      - ./config:/root/.terra/config
+    networks:
+      - terra
+    ports:
+      - "26657:26657"
+      - "1317:1317"
+      - "9090:9090"
+      - "9091:9091"
+    command: terrad start
+  postgres:
+    image: postgres:13
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - terra
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+  # redis:
+  #   image: redis:latest
+  #   networks:
+  #     - terra
+  #   ports:
+  #     - "6379:6379"
+  fcd-collector:
+    image: terramoney/fcd:2.0.6
+    depends_on:
+      - terrad
+      - postgres
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - terra
+    env_file: fcd.env
+    command: collector
+    restart: unless-stopped
+  fcd-api:
+    image: terramoney/fcd:2.0.6
+    depends_on:
+      - terrad
+      - postgres
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - terra
+    ports:
+      - 3060:3060
+    env_file: fcd.env
+    command: start
+
+networks:
+  terra:
+    driver: bridge
