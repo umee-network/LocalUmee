@@ -1,17 +1,15 @@
-version: "3"
+version: "3.9"
 
 services:
   umeed:
     image: ebrahimumee/localumee:latest
-    #pull_policy: always
-    # networks:
-    #   - umee-1
     volumes:
-      - ./config:/root/.umee/config
+      - ./umee-home:/root/.umee
+    environment:
+      - name=value
     ports:
       - "26656:26656"
       - "26657:26657"
       - "1317:1317"
       - "9090:9090"
       - "7171:7171"
-    command: umeed genesis init
