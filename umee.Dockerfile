@@ -14,27 +14,34 @@ RUN apk add --no-cache $PACKAGES
 
 # Compile the umeed binary
 FROM base-builder AS umeed-builder
-WORKDIR /src/app/
-COPY go.mod go.sum* ./
+ARG UMEE_VERSION="main"
+RUN git clone --branch="${UMEE_VERSION}" https://github.com/umee-network/umee.git /src/app/umee
+WORKDIR /src/app/umee
+
 RUN go mod download
-COPY . .
 COPY --from=cosmwasm-lib /lib/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
-ENV PACKAGES curl bash eudev-dev python3
-RUN apk add --no-cache $PACKAGES
-RUN BUILD_TAGS=muslc LINK_STATICALLY=true make install
+RUN apk add --no-cache curl bash eudev-dev python3
+# RUN BUILD_TAGS=muslc LINK_STATICALLY=true make install
+RUN BUILD_TAGS=muslc LINK_STATICALLY=true make build
+# RUN ls /src/app/umee
+# RUN ls /src/app/umee/build
+# RUN /src/app/umee/build/umeed --help
 RUN cd price-feeder && BUILD_TAGS=muslc LINK_STATICALLY=true make install
+# RUN ls /go/bin
 
 # Fetch peggo (gravity bridge) binary
 FROM base-builder AS peggo-builder
 ARG PEGGO_VERSION=v0.3.0
 WORKDIR /downloads/
-RUN git clone https://github.com/umee-network/peggo.git
-RUN cd peggo && git checkout ${PEGGO_VERSION} && make build && cp ./build/peggo /usr/local/bin/
+RUN git clone --branch="${PEGGO_VERSION}" https://github.com/umee-network/peggo.git
+RUN cd peggo && make build && cp ./build/peggo /usr/local/bin/
 
 # Add to a distroless container
-FROM gcr.io/distroless/cc:$IMG_TAG
+# FROM gcr.io/distroless/cc:IMG_TAG
+FROM gcr.io/distroless/cc:debug
 ARG IMG_TAG
-COPY --from=umeed-builder /go/bin/umeed /usr/local/bin/
+COPY --from=cosmwasm-lib /lib/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
+COPY --from=umeed-builder /src/app/umee/build/umeed /usr/local/bin/
 COPY --from=umeed-builder /go/bin/price-feeder /usr/local/bin/
 COPY --from=peggo-builder /usr/local/bin/peggo /usr/local/bin/
 EXPOSE 26656 26657 1317 9090 7171
