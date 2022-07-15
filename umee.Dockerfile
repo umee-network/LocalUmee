@@ -14,36 +14,36 @@ RUN apk add --no-cache $PACKAGES
 
 # Compile the umeed binary
 FROM base-builder AS umeed-builder
-ARG UMEE_VERSION="main"
+# UMEE_VERSION needs to be an branch with cosmwasm enabled
+# otherwise the dockerfile would be different
+ARG UMEE_VERSION="rafilx/umeed-cosmwasmd"
 RUN git clone --branch="${UMEE_VERSION}" https://github.com/umee-network/umee.git /src/app/umee
 WORKDIR /src/app/umee
-
 RUN go mod download
+
 COPY --from=cosmwasm-lib /lib/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
 RUN apk add --no-cache curl bash eudev-dev python3
-# RUN BUILD_TAGS=muslc LINK_STATICALLY=true make install
-RUN BUILD_TAGS=muslc LINK_STATICALLY=true make build
-# RUN ls /src/app/umee
-# RUN ls /src/app/umee/build
-# RUN /src/app/umee/build/umeed --help
+RUN BUILD_TAGS=muslc LINK_STATICALLY=true make install
 RUN cd price-feeder && BUILD_TAGS=muslc LINK_STATICALLY=true make install
-# RUN ls /go/bin
 
 # Fetch peggo (gravity bridge) binary
 FROM base-builder AS peggo-builder
-ARG PEGGO_VERSION=v0.3.0
+ARG PEGGO_VERSION=v0.4.0
 WORKDIR /downloads/
 RUN git clone --branch="${PEGGO_VERSION}" https://github.com/umee-network/peggo.git
 RUN cd peggo && make build && cp ./build/peggo /usr/local/bin/
 
 # Add to a distroless container
-# FROM gcr.io/distroless/cc:IMG_TAG
-FROM gcr.io/distroless/cc:debug
+# FROM gcr.io/distroless/cc:$IMG_TAG
+FROM alpine
 ARG IMG_TAG
-COPY --from=cosmwasm-lib /lib/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
-COPY --from=umeed-builder /src/app/umee/build/umeed /usr/local/bin/
+COPY --from=umeed-builder /go/bin/umeed /usr/local/bin/
 COPY --from=umeed-builder /go/bin/price-feeder /usr/local/bin/
 COPY --from=peggo-builder /usr/local/bin/peggo /usr/local/bin/
-EXPOSE 26656 26657 1317 9090 7171
 
-# ENTRYPOINT ["umeed", "start"]
+RUN apk add --no-cache bash sed jq perl
+WORKDIR /scripts
+COPY single-node.sh /scripts
+RUN ./single-node.sh
+
+EXPOSE 26656 26657 1317 9090 7171

@@ -1,13 +1,8 @@
 #!/bin/bash -eux
 
-CWD="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-
 # These options can be overridden by env
 CHAIN_ID="${CHAIN_ID:-local-test-umee}"
-DOCKER_UMEE_HOME="${DOCKER_UMEE_HOME:-/home/.umee}"
-
-LOCAL_UMEE_DIR="${LOCAL_UMEE_DIR:-$CWD/umee-home}"
-
+CHAIN_DIR="${CHAIN_DIR:-/root/.umee}"
 DENOM="${DENOM:-uumee}"
 STAKE_DENOM="${STAKE_DENOM:-$DENOM}"
 CLEANUP="${CLEANUP:-0}"
@@ -22,47 +17,40 @@ USER_KEY="user"
 USER_MNEMONIC="pony glide frown crisp unfold lawn cup loan trial govern usual matrix theory wash fresh address pioneer between meadow visa buffalo keep gallery swear"
 NEWLINE=$'\n'
 
-echo "building dockerfile"
-IMAGE_TAG="${IMAGE_TAG:-umeed-dockertag}"
-UMEE_LOCAL_DOCKER="${UMEE_LOCAL_DOCKER:-$CWD/umee.Dockerfile}"
+hdir="$CHAIN_DIR"
 
-if [[ -z "$(docker images -q $IMAGE_TAG)" ]]; then
-  echo "docker image doesn't exist"
-  docker build . --file $UMEE_LOCAL_DOCKER -t $IMAGE_TAG
-fi
-
-DOCKER_CALL="docker run -v $CWD/umee-home:$DOCKER_UMEE_HOME $IMAGE_TAG"
-DOCKER_BASH="$DOCKER_CALL /bin/bash"
-DOCKER_UMEED="$DOCKER_CALL umeed"
-# DOCKER_UMEED="umeed"
+NODE_BIN="umeed"
 
 echo "--- Chain ID = $CHAIN_ID"
-echo "--- Chain Dir = $DOCKER_UMEE_HOME"
+echo "--- Chain Dir = $CHAIN_DIR"
 echo "--- Coin Denom = $DENOM"
 
+# Folder for node
+n0dir="$hdir"
+
 # Home flag for folder
-dockerNodeHomeFlag="--home $DOCKER_UMEE_HOME"
+home0="--home $n0dir"
 
 # Config directories for node
-localUmeeNodeConfigDir="$LOCAL_UMEE_DIR/config"
+n0cfgDir="$n0dir/config"
 
 # Config files for nodes
-localUmeeNodeConfigFile="$localUmeeNodeConfigDir/config.toml"
+n0cfg="$n0cfgDir/config.toml"
 
 # App config file for node
-localUmeeNodeAppFile="$localUmeeNodeConfigDir/app.toml"
+n0app="$n0cfgDir/app.toml"
 
 # Common flags
 kbt="--keyring-backend test"
 cid="--chain-id $CHAIN_ID"
 
 # Check if the data dir has been initialized already
-if [[ ! -d "$LOCAL_UMEE_DIR" ]]; then
+if [[ ! -d "$hdir" ]]; then
   echo "====================================="
   echo "STARTING NEW CHAIN WITH GENESIS STATE"
   echo "====================================="
 
-  echo "--- Creating $DOCKER_UMEED validator with chain-id=$CHAIN_ID"
+  echo "--- Creating $NODE_BIN validator with chain-id=$CHAIN_ID"
 
   # Build genesis file and create accounts
   if [[ "$STAKE_DENOM" != "$DENOM" ]]; then
@@ -75,30 +63,31 @@ if [[ ! -d "$LOCAL_UMEE_DIR" ]]; then
   echo "--- Initializing home..."
 
   # Initialize the home directory of node
-  $DOCKER_UMEED $dockerNodeHomeFlag $cid init n0 &>/dev/null
+  $NODE_BIN $home0 $cid init n0 &>/dev/null
 
   echo "--- Enabling node API"
-  sed -i -s '108s/enable = false/enable = true/' $localUmeeNodeAppFile
+  sed -i -s '108s/enable = false/enable = true/' $n0app
 
   # Generate new random key
-  # $DOCKER_UMEED $dockerNodeHomeFlag keys add val $kbt &>/dev/null
+  # $NODE_BIN $home0 keys add val $kbt &>/dev/null
 
   echo "--- Importing keys..."
   echo "$VAL0_MNEMONIC$NEWLINE"
-  $DOCKER_BASH yes "$VAL0_MNEMONIC$NEWLINE" | umeed $dockerNodeHomeFlag $kbt keys add $VAL0_KEY --recover
-  # yes "$VAL0_MNEMONIC$NEWLINE" | $DOCKER_UMEED $dockerNodeHomeFlag $kbt keys add $VAL0_KEY --recover
-  # yes "$USER_MNEMONIC$NEWLINE" | $DOCKER_UMEED $dockerNodeHomeFlag $kbt keys add $USER_KEY --recover
+  yes "$VAL0_MNEMONIC$NEWLINE" | $NODE_BIN $home0 keys add $VAL0_KEY $kbt --recover
+  yes "$USER_MNEMONIC$NEWLINE" | $NODE_BIN $home0 keys add $USER_KEY $kbt --recover
 
   echo "--- Adding addresses..."
-  $DOCKER_UMEED $dockerNodeHomeFlag keys show $VAL0_KEY -a $kbt
-  $DOCKER_UMEED $dockerNodeHomeFlag keys show $VAL0_KEY -a --bech val $kbt
-  $DOCKER_UMEED $dockerNodeHomeFlag keys show $USER_KEY -a $kbt
-  $DOCKER_UMEED $dockerNodeHomeFlag add-genesis-account $($DOCKER_UMEED $dockerNodeHomeFlag keys show $VAL0_KEY -a $kbt) $coins &>/dev/null
-  $DOCKER_UMEED $dockerNodeHomeFlag add-genesis-account $($DOCKER_UMEED $dockerNodeHomeFlag keys show $USER_KEY -a $kbt) $coins_user &>/dev/null
+  $NODE_BIN $home0 keys show $VAL0_KEY -a $kbt
+  $NODE_BIN $home0 keys show $VAL0_KEY -a --bech val $kbt
+  $NODE_BIN $home0 keys show $USER_KEY -a $kbt
+  $NODE_BIN $home0 add-genesis-account $($NODE_BIN $home0 keys show $VAL0_KEY -a $kbt) $coins &>/dev/null
+  $NODE_BIN $home0 add-genesis-account $($NODE_BIN $home0 keys show $USER_KEY -a $kbt) $coins_user &>/dev/null
+
+
 
   echo "--- Patching genesis..."
   if [[ "$STAKE_DENOM" == "$DENOM" ]]; then
-    jq '.consensus_params["block"]["time_iota_ms]="5000"
+    jq '.consensus_params["block"]["time_iota_ms"]="5000"
       | .app_state["crisis"]["constant_fee"]["denom"]="'$DENOM'"
       | .app_state["gov"]["deposit_params"]["min_deposit"][0]["denom"]="'$DENOM'"
       | .app_state["mint"]["params"]["mint_denom"]="'$DENOM'"
@@ -106,40 +95,39 @@ if [[ ! -d "$LOCAL_UMEE_DIR" ]]; then
       | .app_state["gravity"]["params"]["bridge_ethereum_address"]="0x93b5122922F9dCd5458Af42Ba69Bd7baEc546B3c"
       | .app_state["gravity"]["params"]["bridge_chain_id"]="5"
       | .app_state["gravity"]["params"]["bridge_active"]=false
-      | .app_state["gravity"]["params"]["bridge_contract_start_height"]="5763150"
       | .app_state["gravity"]["delegate_keys"]=[{"validator":"umeevaloper1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymuzzdn","orchestrator":"umee1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymc9due","eth_address":"0xfac5EC50BdfbB803f5cFc9BF0A0C2f52aDE5b6dd"},{"validator":"umeevaloper1qjehhqdnc4mevtsumk6nkhm39nqrqtcy2f5k6k","orchestrator":"umee1qjehhqdnc4mevtsumk6nkhm39nqrqtcy2dnetu","eth_address":"0x02fa1b44e2EF8436e6f35D5F56607769c658c225"},{"validator":"umeevaloper1s824eseh42ndyawx702gwcwjqn43u89dhmqdw8","orchestrator":"umee1s824eseh42ndyawx702gwcwjqn43u89dhl8zld","eth_address":"0xd8f468c1B719cc2d50eB1E3A55cFcb60e23758CD"}]
       | .app_state["gravity"]["gravity_nonces"]["latest_valset_nonce"]="0"
       | .app_state["gravity"]["gravity_nonces"]["last_observed_nonce"]="0"
       | .app_state["gov"]["voting_params"]["voting_period"]="10s"' \
-        $localUmeeNodeConfigDir/genesis.json > $localUmeeNodeConfigDir/tmp_genesis.json && mv $localUmeeNodeConfigDir/tmp_genesis.json $localUmeeNodeConfigDir/genesis.json
+        $n0cfgDir/genesis.json > $n0cfgDir/tmp_genesis.json && mv $n0cfgDir/tmp_genesis.json $n0cfgDir/genesis.json
 
     #  '.app_state["gravity"]["valset_confirms"]=[{"nonce":1,"orchestrator":"umee1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymc9due","eth_address":"0xfac5EC50BdfbB803f5cFc9BF0A0C2f52aDE5b6dd","signature":"0x9d45cbaada227c7681edd24c00bccf32f649209721aa5dd9f85f55e799c6046c78c5a0e9e870b96dfbb42e453e1e305072d0c31ffa03d4c72c8ecb328cd511b601"},{"nonce":1,"orchestrator":"umee1qjehhqdnc4mevtsumk6nkhm39nqrqtcy2dnetu","eth_address":"0x02fa1b44e2EF8436e6f35D5F56607769c658c225","signature":"0x72df46d2c1eac7b70b7337a00d2a72d0b275d96a7badf3f66307a7b5c7e743b66f23047d4f95bc0e6ed9dc15d58173900588d4fe0f13b051062af55625fdc44b00"},{"nonce":1,"orchestrator":"umee1s824eseh42ndyawx702gwcwjqn43u89dhl8zld","eth_address":"0xd8f468c1B719cc2d50eB1E3A55cFcb60e23758CD","signature":"0x04dee9ba5d72b9394a3de3c3a1c6e60fd3d63fa5fafecc705228b23488c8006a4b935fc7549f3e9b3b4a278530c2a1716459a947c8bee4322f4febb1f800731301"}]'
   fi
 
-  	jq '.app_state["gov"]["voting_params"]["voting_period"]="'$VOTING_PERIOD'"' $localUmeeNodeConfigDir/genesis.json > $localUmeeNodeConfigDir/tmp_genesis.json && mv $localUmeeNodeConfigDir/tmp_genesis.json $localUmeeNodeConfigDir/genesis.json
+  	jq '.app_state["gov"]["voting_params"]["voting_period"]="'$VOTING_PERIOD'"' $n0cfgDir/genesis.json > $n0cfgDir/tmp_genesis.json && mv $n0cfgDir/tmp_genesis.json $n0cfgDir/genesis.json
 
 
   echo "--- Creating gentx..."
-  $DOCKER_UMEED $dockerNodeHomeFlag gentx-gravity $VAL0_KEY 1000$SCALE_FACTOR$STAKE_DENOM 0x0Ca2adaC7e34EF5db8234bE1182070CD980273E8 umee1s9lg2vpjrwmyn93ftzkpkr750xjwzdp7a6e97h $kbt $cid
-  $DOCKER_UMEED $dockerNodeHomeFlag collect-gentxs &>/dev/null
+  $NODE_BIN $home0 gentx-gravity $VAL0_KEY 1000$SCALE_FACTOR$STAKE_DENOM 0x0Ca2adaC7e34EF5db8234bE1182070CD980273E8 umee1s9lg2vpjrwmyn93ftzkpkr750xjwzdp7a6e97h $kbt $cid
+  $NODE_BIN $home0 collect-gentxs &>/dev/null
 
   echo "--- Validating genesis..."
-  $DOCKER_UMEED $dockerNodeHomeFlag validate-genesis
+  $NODE_BIN $home0 validate-genesis
 
   # Use perl for cross-platform compatibility
   # Example usage: $REGEX_REPLACE 's/^param = ".*?"/param = "100"/' config.toml
   REGEX_REPLACE="perl -i -pe"
 
   echo "--- Modifying config..."
-  perl -i -pe 's|addr_book_strict = true|addr_book_strict = false|g' $localUmeeNodeConfigFile
-  perl -i -pe 's|external_address = ""|external_address = "tcp://127.0.0.1:26657"|g' $localUmeeNodeConfigFile
-  perl -i -pe 's|"tcp://127.0.0.1:26657"|"tcp://0.0.0.0:26657"|g' $localUmeeNodeConfigFile
-  perl -i -pe 's|allow_duplicate_ip = false|allow_duplicate_ip = true|g' $localUmeeNodeConfigFile
-  perl -i -pe 's|log_level = "info"|log_level = "'$LOG_LEVEL'"|g' $localUmeeNodeConfigFile
-  perl -i -pe 's|timeout_commit = ".*?"|timeout_commit = "5s"|g' $localUmeeNodeConfigFile
+  perl -i -pe 's|addr_book_strict = true|addr_book_strict = false|g' $n0cfg
+  perl -i -pe 's|external_address = ""|external_address = "tcp://127.0.0.1:26657"|g' $n0cfg
+  perl -i -pe 's|"tcp://127.0.0.1:26657"|"tcp://0.0.0.0:26657"|g' $n0cfg
+  perl -i -pe 's|allow_duplicate_ip = false|allow_duplicate_ip = true|g' $n0cfg
+  perl -i -pe 's|log_level = "info"|log_level = "'$LOG_LEVEL'"|g' $n0cfg
+  perl -i -pe 's|timeout_commit = ".*?"|timeout_commit = "5s"|g' $n0cfg
 
   echo "--- Modifying app..."
-  perl -i -pe 's|minimum-gas-prices = ""|minimum-gas-prices = "0uumee"|g' $localUmeeNodeAppFile
+  perl -i -pe 's|minimum-gas-prices = ""|minimum-gas-prices = "0uumee"|g' $n0app
 
   # Don't need to set peers if just one node, right?
 else
@@ -151,7 +139,7 @@ fi # data dir check
 # Start the instance
 echo "--- Starting node..."
 
-# $DOCKER_UMEED $dockerNodeHomeFlag start --grpc.address="0.0.0.0:9090" --grpc-web.enable=false --log_level info > $dockerUmeeHome.n0.log 2>&1 &
+# $NODE_BIN $home0 start --grpc.address="0.0.0.0:9090" --grpc-web.enable=false --log_level info > $hdir.n0.log 2>&1 &
 
 # # Wait for chain to start
 # echo "--- Waiting for chain to start..."
@@ -159,10 +147,10 @@ echo "--- Starting node..."
 
 # echo
 # echo "Logs:"
-# echo "  * tail -f $dockerUmeeHome.n0.log"
+# echo "  * tail -f $hdir.n0.log"
 # echo
 # echo "Env for easy access:"
-# echo "export H1='--home $dockerUmeeHome/n0/'"
+# echo "export H1='--home $hdir/n0/'"
 # echo
 # echo "Command Line Access:"
-# echo "  * $DOCKER_UMEED --home $dockerUmeeHome/n0 status"
+# echo "  * $NODE_BIN --home $hdir/n0 status"
