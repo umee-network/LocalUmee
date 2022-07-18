@@ -2,7 +2,7 @@
 
 # These options can be overridden by env
 CHAIN_ID="${CHAIN_ID:-local-test-umee}"
-CHAIN_DIR="${CHAIN_DIR:-/root/.umee}"
+CHAIN_DIR="${CHAIN_DIR:-"/root/.umee"}"
 DENOM="${DENOM:-uumee}"
 STAKE_DENOM="${STAKE_DENOM:-$DENOM}"
 CLEANUP="${CLEANUP:-0}"
@@ -45,7 +45,7 @@ kbt="--keyring-backend test"
 cid="--chain-id $CHAIN_ID"
 
 # Check if the data dir has been initialized already
-if [[ ! -d "$hdir" ]]; then
+if [[ ! -f "$n0cfgDir/genesis.json" ]]; then
   echo "====================================="
   echo "STARTING NEW CHAIN WITH GENESIS STATE"
   echo "====================================="
@@ -140,6 +140,7 @@ fi # data dir check
 echo "--- Starting node..."
 
 # $NODE_BIN $home0 start --grpc.address="0.0.0.0:9090" --grpc-web.enable=false --log_level info > $hdir.n0.log 2>&1 &
+$NODE_BIN $home0 start --grpc.address="0.0.0.0:9090" --grpc-web.enable=false --log_level info
 
 # # Wait for chain to start
 # echo "--- Waiting for chain to start..."

@@ -1,0 +1,63 @@
+gas_adjustment = 1.5
+
+[server]
+listen_addr = "0.0.0.0:7171"
+read_timeout = "20s"
+verbose_cors = true
+write_timeout = "20s"
+
+[[deviation_thresholds]]
+base = "USDT"
+threshold = "2"
+
+[[currency_pairs]]
+base = "ATOM"
+providers = [
+  "binance",
+]
+quote = "USDT"
+
+[[currency_pairs]]
+base = "ATOM"
+providers = [
+  "kraken",
+  "osmosis",
+]
+quote = "USD"
+
+[[currency_pairs]]
+base = "USDT"
+providers = [
+  "kraken",
+  "gate",
+  "coinbase"
+]
+quote = "USD"
+
+[account]
+address = "umee1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymc9due"
+chain_id = "local-test-umee"
+validator = "umeevaloper1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymuzzdn"
+
+[keyring]
+backend = "test"
+dir = "/root/.umee"
+
+[rpc]
+grpc_endpoint = "umee-network:9090"
+rpc_timeout = "100ms"
+tmrpc_endpoint = "http://umee-network:26657"
+
+[telemetry]
+enable_hostname = true
+enable_hostname_label = true
+enable_service_label = true
+enabled = false
+global_labels = [["chain-id", "local-test-umee"]]
+service_name = "price-feeder"
+type = "prometheus"
+
+[[provider_endpoints]]
+name = "binance"
+rest = "https://api1.binance.com"
+websocket = "stream.binance.com:9443"
