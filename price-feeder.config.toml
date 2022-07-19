@@ -1,7 +1,8 @@
 gas_adjustment = 1.5
+provider_timeout = "5s"
 
 [server]
-listen_addr = "0.0.0.0:7171"
+listen_addr = "localhost:7171"
 read_timeout = "20s"
 verbose_cors = true
 write_timeout = "20s"
@@ -41,15 +42,15 @@ validator = "umeevaloper1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymuzzdn"
 
 [keyring]
 backend = "test"
-dir = "/root/.umee"
-# dir = "./.umee"
+# dir = "/root/.umee"
+dir = "./.umee"
 
 [rpc]
-# grpc_endpoint = "localhost:9090"
-grpc_endpoint = "umeed:9090"
+grpc_endpoint = "localhost:9090"
+# grpc_endpoint = "umeed:9090"
 rpc_timeout = "100ms"
-# tmrpc_endpoint = "http://localhost:26657"
-tmrpc_endpoint = "http://umeed:26657"
+tmrpc_endpoint = "http://localhost:26657"
+# tmrpc_endpoint = "http://umeed:26657"
 
 [telemetry]
 enable_hostname = true
