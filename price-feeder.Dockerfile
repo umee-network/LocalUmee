@@ -1,5 +1,3 @@
-ARG IMG_TAG=latest
-
 # Fetch libwasmvm_muslc (cosmwasmvm)
 FROM alpine AS cosmwasm-lib
 ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta10/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a
