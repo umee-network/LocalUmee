@@ -1,3 +1,4 @@
+# Ref: https://github.com/umee-network/umee/blob/46139010fcf73b3c54ce18d6c4e425bb4ad529ec/price-feeder/price-feeder.example.toml#L1
 gas_adjustment = 1.5
 provider_timeout = "5s"
 

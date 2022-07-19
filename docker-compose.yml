@@ -32,7 +32,7 @@ services:
       umeed:
         condition: service_healthy
     environment:
-      - PRICE_FEEDER_PASS=xyz
+      - PRICE_FEEDER_PASS=pass
     volumes:
       - ./.umee:/root/.umee
     networks:
