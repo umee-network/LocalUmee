@@ -42,11 +42,14 @@ validator = "umeevaloper1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymuzzdn"
 [keyring]
 backend = "test"
 dir = "/root/.umee"
+# dir = "./.umee"
 
 [rpc]
-grpc_endpoint = "umee-network:9090"
+# grpc_endpoint = "localhost:9090"
+grpc_endpoint = "umeed:9090"
 rpc_timeout = "100ms"
-tmrpc_endpoint = "http://umee-network:26657"
+# tmrpc_endpoint = "http://localhost:26657"
+tmrpc_endpoint = "http://umeed:26657"
 
 [telemetry]
 enable_hostname = true

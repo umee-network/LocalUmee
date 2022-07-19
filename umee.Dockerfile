@@ -31,4 +31,4 @@ WORKDIR /scripts
 COPY single-node.sh /scripts
 CMD ./single-node.sh
 
-EXPOSE 26656 26657 1317 9090 7171
+EXPOSE 26657 1317

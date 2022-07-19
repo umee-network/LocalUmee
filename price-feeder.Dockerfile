@@ -30,4 +30,5 @@ COPY --from=umeed-builder /go/bin/price-feeder /usr/local/bin/
 COPY price-feeder.config.toml /root/price-feeder.config.toml
 CMD price-feeder /root/price-feeder.config.toml --log-level debug
 
-EXPOSE 26656 26657 1317 9090 7171
+# EXPOSE 26656 26657 1317 9090 7171
+EXPOSE 7171

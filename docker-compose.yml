@@ -10,12 +10,10 @@ services:
     volumes:
       - ./.umee:/root/.umee
     networks:
-      - umee-network
+      - umee_network
     ports:
-      - "26656:26656"
       - "26657:26657"
       - "1317:1317"
-      - "9090:9090"
 
   price-feeder:
     build:
@@ -28,9 +26,9 @@ services:
     volumes:
       - ./.umee:/root/.umee
     networks:
-      - umee-network
+      - umee_network
     ports:
       - "7171:7171"
 
 networks:
-  umee-network:
+  umee_network:

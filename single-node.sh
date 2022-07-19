@@ -120,8 +120,10 @@ if [[ ! -f "$n0cfgDir/genesis.json" ]]; then
 
   echo "--- Modifying config..."
   perl -i -pe 's|addr_book_strict = true|addr_book_strict = false|g' $n0cfg
-  perl -i -pe 's|external_address = ""|external_address = "tcp://127.0.0.1:26657"|g' $n0cfg
-  perl -i -pe 's|"tcp://127.0.0.1:26657"|"tcp://0.0.0.0:26657"|g' $n0cfg
+  # perl -i -pe 's|external_address = ""|external_address = "tcp://127.0.0.1:26657"|g' $n0cfg
+  perl -i -pe 's|external_address = ""|external_address = "tcp://localhost:26657"|g' $n0cfg
+  # perl -i -pe 's|"tcp://127.0.0.1:26657"|"tcp://0.0.0.0:26657"|g' $n0cfg
+  perl -i -pe 's|"tcp://127.0.0.1:26657"|"tcp://localhost:26657"|g' $n0cfg
   perl -i -pe 's|allow_duplicate_ip = false|allow_duplicate_ip = true|g' $n0cfg
   perl -i -pe 's|log_level = "info"|log_level = "'$LOG_LEVEL'"|g' $n0cfg
   perl -i -pe 's|timeout_commit = ".*?"|timeout_commit = "5s"|g' $n0cfg
@@ -140,7 +142,7 @@ fi # data dir check
 echo "--- Starting node..."
 
 # $NODE_BIN $home0 start --grpc.address="0.0.0.0:9090" --grpc-web.enable=false --log_level info > $hdir.n0.log 2>&1 &
-$NODE_BIN $home0 start --grpc.address="0.0.0.0:9090" --grpc-web.enable=false --log_level info
+$NODE_BIN $home0 start --grpc.address="localhost:9090" --grpc-web.enable=true --log_level info
 
 # # Wait for chain to start
 # echo "--- Waiting for chain to start..."
