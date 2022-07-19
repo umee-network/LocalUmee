@@ -1,0 +1,69 @@
+# Ref: https://github.com/umee-network/umee/blob/46139010fcf73b3c54ce18d6c4e425bb4ad529ec/price-feeder/price-feeder.example.toml#L1
+gas_adjustment = 1.5
+provider_timeout = "5s"
+
+[server]
+listen_addr = "localhost:7171"
+read_timeout = "20s"
+verbose_cors = true
+write_timeout = "20s"
+
+[[deviation_thresholds]]
+base = "USDT"
+threshold = "2"
+
+[[currency_pairs]]
+base = "ATOM"
+providers = [
+  "mock",
+]
+quote = "USDT"
+
+[[currency_pairs]]
+base = "ATOM"
+providers = [
+  "mock",
+]
+quote = "USD"
+
+[[currency_pairs]]
+base = "UMEE"
+providers = [
+  "mock",
+]
+quote = "USDT"
+
+[[currency_pairs]]
+base = "USDT"
+providers = [
+  "mock",
+]
+quote = "USD"
+
+[account]
+address = "umee1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymc9due"
+chain_id = "local-test-umee"
+validator = "umeevaloper1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymuzzdn"
+
+[keyring]
+backend = "test"
+dir = "/root/.umee"
+
+[rpc]
+grpc_endpoint = "umeed:9090"
+rpc_timeout = "100ms"
+tmrpc_endpoint = "http://umeed:26657"
+
+[telemetry]
+enable_hostname = true
+enable_hostname_label = true
+enable_service_label = true
+enabled = false
+global_labels = [["chain-id", "local-test-umee"]]
+service_name = "price-feeder"
+type = "prometheus"
+
+[[provider_endpoints]]
+name = "binance"
+rest = "https://api1.binance.com"
+websocket = "stream.binance.com:9443"

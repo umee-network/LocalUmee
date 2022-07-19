@@ -21,13 +21,12 @@ RUN go mod download
 
 COPY --from=cosmwasm-lib /lib/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
 RUN apk add --no-cache curl bash eudev-dev python3
-RUN BUILD_TAGS=muslc LINK_STATICALLY=true make install
+RUN cd price-feeder && BUILD_TAGS=muslc LINK_STATICALLY=true make install
 
 FROM alpine
-COPY --from=umeed-builder /go/bin/umeed /usr/local/bin/
+COPY --from=umeed-builder /go/bin/price-feeder /usr/local/bin/
+COPY price-feeder.config.toml /root/price-feeder.config.toml
+CMD price-feeder /root/price-feeder.config.toml --log-level debug
 
-RUN apk add --no-cache bash sed jq perl curl
-COPY single-node.sh /scripts/single-node.sh
-CMD ./scripts/single-node.sh
-
-EXPOSE 26657 1317 9090
+# EXPOSE 26656 26657 1317 9090 7171
+EXPOSE 7171

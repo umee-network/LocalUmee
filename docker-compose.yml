@@ -2,14 +2,43 @@ version: "3.9"
 
 services:
   umeed:
-    image: ebrahimumee/localumee:latest
+    build:
+      context: .
+      dockerfile: umee.Dockerfile
+      args:
+        - UMEE_VERSION=rafilx/umeed-cosmwasm-permissionless
     volumes:
-      - ./umee-home:/root/.umee
-    environment:
-      - name=value
+      - ./.umee:/root/.umee
+    networks:
+      - umee_network
     ports:
-      - "26656:26656"
       - "26657:26657"
       - "1317:1317"
       - "9090:9090"
+    healthcheck:
+      test: ["CMD", "curl", "http://0.0.0.0:26657/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 8s
+
+  price-feeder:
+    build:
+      context: .
+      dockerfile: price-feeder.Dockerfile
+      args:
+        - UMEE_VERSION=rafilx/umeed-cosmwasm-permissionless
+    depends_on:
+      umeed:
+        condition: service_healthy
+    environment:
+      - PRICE_FEEDER_PASS=pass
+    volumes:
+      - ./.umee:/root/.umee
+    networks:
+      - umee_network
+    ports:
       - "7171:7171"
+
+networks:
+  umee_network:
