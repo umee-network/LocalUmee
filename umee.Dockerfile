@@ -26,9 +26,8 @@ RUN BUILD_TAGS=muslc LINK_STATICALLY=true make install
 FROM alpine
 COPY --from=umeed-builder /go/bin/umeed /usr/local/bin/
 
-RUN apk add --no-cache bash sed jq perl
-WORKDIR /scripts
-COPY single-node.sh /scripts
-CMD ./single-node.sh
+RUN apk add --no-cache bash sed jq perl curl
+COPY single-node.sh /scripts/single-node.sh
+CMD ./scripts/single-node.sh
 
-EXPOSE 26657 1317
+EXPOSE 26657 1317 9090
