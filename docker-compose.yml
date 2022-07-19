@@ -14,6 +14,13 @@ services:
     ports:
       - "26657:26657"
       - "1317:1317"
+      - "9090:9090"
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:26657/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 8s
 
   price-feeder:
     build:
@@ -22,7 +29,10 @@ services:
       args:
         - UMEE_VERSION=rafilx/umeed-cosmwasm-permissionless
     depends_on:
-      - umeed
+      umeed:
+        condition: service_healthy
+    environment:
+      - PRICE_FEEDER_PASS=xyz
     volumes:
       - ./.umee:/root/.umee
     networks:
