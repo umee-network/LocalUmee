@@ -113,7 +113,7 @@ if [[ ! -f "$n0cfgDir/genesis.json" ]]; then
 
   echo "--- Modifying config..."
   perl -i -pe 's|addr_book_strict = true|addr_book_strict = false|g' $n0cfg
-  perl -i -pe 's|external_address = ""|external_address = "tcp://127.0.0.1:26657"|g' $n0cfg
+  perl -i -pe 's|external_address = ""|external_address = "tcp://0.0.0.0:26657"|g' $n0cfg
   # perl -i -pe 's|external_address = ""|external_address = "tcp://localhost:26657"|g' $n0cfg
   perl -i -pe 's|"tcp://127.0.0.1:26657"|"tcp://0.0.0.0:26657"|g' $n0cfg
   # perl -i -pe 's|"tcp://127.0.0.1:26657"|"tcp://localhost:26657"|g' $n0cfg

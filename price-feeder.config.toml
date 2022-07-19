@@ -14,7 +14,7 @@ threshold = "2"
 [[currency_pairs]]
 base = "ATOM"
 providers = [
-  "binance",
+  "mock",
 ]
 quote = "USDT"
 
@@ -50,11 +50,11 @@ dir = "/root/.umee"
 # dir = "./.umee"
 
 [rpc]
-# grpc_endpoint = "localhost:9090"
-grpc_endpoint = "http://umeed:9090"
+grpc_endpoint = "umeed:9090"
+# grpc_endpoint = "http://umeed:9090"
 rpc_timeout = "100ms"
-# tmrpc_endpoint = "http://localhost:26657"
 tmrpc_endpoint = "http://umeed:26657"
+# tmrpc_endpoint = "http://umeed:26657"
 
 [telemetry]
 enable_hostname = true
