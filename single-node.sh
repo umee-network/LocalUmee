@@ -86,26 +86,19 @@ if [[ ! -f "$n0cfgDir/genesis.json" ]]; then
 
 
   echo "--- Patching genesis..."
-  if [[ "$STAKE_DENOM" == "$DENOM" ]]; then
-    jq '.consensus_params["block"]["time_iota_ms"]="5000"
-      | .app_state["crisis"]["constant_fee"]["denom"]="'$DENOM'"
-      | .app_state["gov"]["deposit_params"]["min_deposit"][0]["denom"]="'$DENOM'"
-      | .app_state["mint"]["params"]["mint_denom"]="'$DENOM'"
-      | .app_state["staking"]["params"]["bond_denom"]="'$DENOM'"
-      | .app_state["gravity"]["params"]["bridge_ethereum_address"]="0x93b5122922F9dCd5458Af42Ba69Bd7baEc546B3c"
-      | .app_state["gravity"]["params"]["bridge_chain_id"]="5"
-      | .app_state["gravity"]["params"]["bridge_active"]=false
-      | .app_state["gravity"]["delegate_keys"]=[{"validator":"umeevaloper1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymuzzdn","orchestrator":"umee1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymc9due","eth_address":"0xfac5EC50BdfbB803f5cFc9BF0A0C2f52aDE5b6dd"},{"validator":"umeevaloper1qjehhqdnc4mevtsumk6nkhm39nqrqtcy2f5k6k","orchestrator":"umee1qjehhqdnc4mevtsumk6nkhm39nqrqtcy2dnetu","eth_address":"0x02fa1b44e2EF8436e6f35D5F56607769c658c225"},{"validator":"umeevaloper1s824eseh42ndyawx702gwcwjqn43u89dhmqdw8","orchestrator":"umee1s824eseh42ndyawx702gwcwjqn43u89dhl8zld","eth_address":"0xd8f468c1B719cc2d50eB1E3A55cFcb60e23758CD"}]
-      | .app_state["gravity"]["gravity_nonces"]["latest_valset_nonce"]="0"
-      | .app_state["gravity"]["gravity_nonces"]["last_observed_nonce"]="0"
-      | .app_state["gov"]["voting_params"]["voting_period"]="10s"' \
-        $n0cfgDir/genesis.json > $n0cfgDir/tmp_genesis.json && mv $n0cfgDir/tmp_genesis.json $n0cfgDir/genesis.json
-
-    #  '.app_state["gravity"]["valset_confirms"]=[{"nonce":1,"orchestrator":"umee1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymc9due","eth_address":"0xfac5EC50BdfbB803f5cFc9BF0A0C2f52aDE5b6dd","signature":"0x9d45cbaada227c7681edd24c00bccf32f649209721aa5dd9f85f55e799c6046c78c5a0e9e870b96dfbb42e453e1e305072d0c31ffa03d4c72c8ecb328cd511b601"},{"nonce":1,"orchestrator":"umee1qjehhqdnc4mevtsumk6nkhm39nqrqtcy2dnetu","eth_address":"0x02fa1b44e2EF8436e6f35D5F56607769c658c225","signature":"0x72df46d2c1eac7b70b7337a00d2a72d0b275d96a7badf3f66307a7b5c7e743b66f23047d4f95bc0e6ed9dc15d58173900588d4fe0f13b051062af55625fdc44b00"},{"nonce":1,"orchestrator":"umee1s824eseh42ndyawx702gwcwjqn43u89dhl8zld","eth_address":"0xd8f468c1B719cc2d50eB1E3A55cFcb60e23758CD","signature":"0x04dee9ba5d72b9394a3de3c3a1c6e60fd3d63fa5fafecc705228b23488c8006a4b935fc7549f3e9b3b4a278530c2a1716459a947c8bee4322f4febb1f800731301"}]'
-  fi
-
-  	jq '.app_state["gov"]["voting_params"]["voting_period"]="'$VOTING_PERIOD'"' $n0cfgDir/genesis.json > $n0cfgDir/tmp_genesis.json && mv $n0cfgDir/tmp_genesis.json $n0cfgDir/genesis.json
-
+  jq '.consensus_params["block"]["time_iota_ms"]="5000"
+    | .app_state["crisis"]["constant_fee"]["denom"]="'$DENOM'"
+    | .app_state["gov"]["deposit_params"]["min_deposit"][0]["denom"]="'$DENOM'"
+    | .app_state["mint"]["params"]["mint_denom"]="'$DENOM'"
+    | .app_state["staking"]["params"]["bond_denom"]="'$DENOM'"
+    | .app_state["gravity"]["params"]["bridge_ethereum_address"]="0x93b5122922F9dCd5458Af42Ba69Bd7baEc546B3c"
+    | .app_state["gravity"]["params"]["bridge_chain_id"]="5"
+    | .app_state["gravity"]["params"]["bridge_active"]=false
+    | .app_state["gravity"]["delegate_keys"]=[{"validator":"umeevaloper1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymuzzdn","orchestrator":"umee1y6xz2ggfc0pcsmyjlekh0j9pxh6hk87ymc9due","eth_address":"0xfac5EC50BdfbB803f5cFc9BF0A0C2f52aDE5b6dd"},{"validator":"umeevaloper1qjehhqdnc4mevtsumk6nkhm39nqrqtcy2f5k6k","orchestrator":"umee1qjehhqdnc4mevtsumk6nkhm39nqrqtcy2dnetu","eth_address":"0x02fa1b44e2EF8436e6f35D5F56607769c658c225"},{"validator":"umeevaloper1s824eseh42ndyawx702gwcwjqn43u89dhmqdw8","orchestrator":"umee1s824eseh42ndyawx702gwcwjqn43u89dhl8zld","eth_address":"0xd8f468c1B719cc2d50eB1E3A55cFcb60e23758CD"}]
+    | .app_state["gravity"]["gravity_nonces"]["latest_valset_nonce"]="0"
+    | .app_state["gravity"]["gravity_nonces"]["last_observed_nonce"]="0"
+    | .app_state["gov"]["voting_params"]["voting_period"]="'$VOTING_PERIOD'"' \
+      $n0cfgDir/genesis.json > $n0cfgDir/tmp_genesis.json && mv $n0cfgDir/tmp_genesis.json $n0cfgDir/genesis.json
 
   echo "--- Creating gentx..."
   $NODE_BIN $home0 gentx-gravity $VAL0_KEY 1000$SCALE_FACTOR$STAKE_DENOM 0x0Ca2adaC7e34EF5db8234bE1182070CD980273E8 umee1s9lg2vpjrwmyn93ftzkpkr750xjwzdp7a6e97h $kbt $cid
@@ -144,7 +137,7 @@ echo "--- Starting node..."
 # $NODE_BIN $home0 start --grpc.address="0.0.0.0:9090" --grpc-web.enable=false --log_level info > $hdir.n0.log 2>&1 &
 $NODE_BIN $home0 start --grpc.address="localhost:9090" --grpc-web.enable=true --log_level info
 
-# # Wait for chain to start
+# Wait for chain to start
 # echo "--- Waiting for chain to start..."
 # sleep 4
 
