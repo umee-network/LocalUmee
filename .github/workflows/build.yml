@@ -9,7 +9,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Start containers
-      timeout-minutes: 5
+      timeout-minutes: 10
       run: docker-compose up --build --abort-on-container-exit
     - name: Stop containers
       if: always()
