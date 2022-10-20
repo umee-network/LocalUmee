@@ -30,4 +30,5 @@ RUN apk add --no-cache bash sed jq perl curl
 COPY single-node.sh /scripts/single-node.sh
 CMD ./scripts/single-node.sh
 
+USER swuser
 EXPOSE 26657 1317 9090

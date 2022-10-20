@@ -13,4 +13,5 @@ RUN cd peggo && make build && cp ./build/peggo /usr/local/bin/
 FROM alpine
 COPY --from=peggo-builder /usr/local/bin/peggo /usr/local/bin/
 
+USER swuser
 EXPOSE 26656 26657 1317 9090 7171
